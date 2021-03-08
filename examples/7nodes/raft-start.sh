@@ -124,15 +124,17 @@ chk=`geth help | grep "allow-insecure-unlock" | wc -l`
 if (( $chk == 1 )); then
     allowSecureUnlock="--allow-insecure-unlock"
 fi
-ARGS="--nodiscover --nousb ${allowSecureUnlock} --verbosity ${verbosity} --networkid $NETWORK_ID --raft --raftblocktime ${blockTime} --rpc --rpccorsdomain=* --rpcvhosts=* --rpcaddr 0.0.0.0 --rpcapi admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft,quorumPermission,quorumExtension --emitcheckpoints --unlock 0 --password passwords.txt $QUORUM_GETH_ARGS"
+ARGS="--nodiscover --nousb ${allowSecureUnlock} --verbosity ${verbosity} --networkid $NETWORK_ID --raft --raftblocktime ${blockTime} --rpc --rpccorsdomain=* --rpcvhosts=* --rpcaddr 0.0.0.0 --rpcapi admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft,quorumPermission,quorumExtension --ws --wsaddr=localhost --wsorigins=* --wsapi admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft,quorumPermission,quorumExtension --emitcheckpoints --unlock 0 --password passwords.txt $QUORUM_GETH_ARGS"
 
 basePort=21000
 baseRpcPort=22000
+baseWsPort=23000
 baseRaftPort=50401
 for i in `seq 1 ${numNodes}`
 do
     port=$(($basePort + ${i} - 1))
     rpcPort=$(($baseRpcPort + ${i} - 1))
+    wsPort=$(($baseWsPort + ${i} - 1))
     raftPort=$(($baseRaftPort + ${i} - 1))
     permissioned=
     if [[ $i -le 4 ]]; then
@@ -141,7 +143,7 @@ do
         permissioned="--permissioned"
     fi
 
-    PRIVATE_CONFIG=qdata/c${i}/tm.ipc nohup geth --datadir qdata/dd${i} ${ARGS} ${permissioned} --raftport ${raftPort} --rpcport ${rpcPort} --port ${port} 2>>qdata/logs/${i}.log &
+    PRIVATE_CONFIG=qdata/c${i}/tm.ipc nohup geth --datadir qdata/dd${i} ${ARGS} ${permissioned} --raftport ${raftPort} --rpcport ${rpcPort} --wsport ${wsPort} --port ${port} 2>>qdata/logs/${i}.log &
 done
 
 set +v
